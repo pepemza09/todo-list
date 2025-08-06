@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TodoList - Gestiona tus tareas{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{% load static %}{% static 'css/gemini-airbnb.css' %}">
+    
+    <!-- Iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header estilo Airbnb -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{% url 'todo:list' %}" class="logo">
+                    <i class="fas fa-tasks"></i> TodoList
+                </a>
+                
+                <div class="user-menu">
+                    <span class="user-greeting">Hola, Usuario</span>
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle" style="font-size: 32px; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="{% load static %}{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

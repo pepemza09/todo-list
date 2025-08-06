@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Formulario para nueva tarea -->
+<div class="todo-form">
+    <h2 style="margin-bottom: 24px; color: var(--text-primary);">
+        <i class="fas fa-plus-circle" style="color: var(--primary-color);"></i>
+        Crear Nueva Tarea
+    </h2>
+    
+    <form method="post" action="{% url 'todo:create' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="title">Título de la tarea</label>
+            <input type="text" id="title" name="title" class="form-input" 
+                   placeholder="¿Qué necesitas hacer?" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="description">Descripción (opcional)</label>
+            <textarea id="description" name="description" class="form-input form-textarea" 
+                      placeholder="Agrega más detalles sobre tu tarea..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="priority">Prioridad</label>
+            <select id="priority" name="priority" class="form-input">
+                <option value="low">Baja</option>
+                <option value="medium" selected>Media</option>
+                <option value="high">Alta</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Crear Tarea
+        </button>
+    </form>
+</div>
+
+<!-- Filtros estilo Airbnb -->
+<div class="filters-section" style="margin-bottom: 32px;">
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <button class="btn btn-outline filter-btn active" data-filter="all">
+            <i class="fas fa-list"></i> Todas ({{ todos.count }})
+        </button>
+        <button class="btn btn-outline filter-btn" data-filter="pending">
+            <i class="fas fa-clock"></i> Pendientes
+        </button>
+        <button class="btn btn-outline filter-btn" data-filter="completed">
+            <i class="fas fa-check-circle"></i> Completadas
+        </button>
+    </div>
+</div>
+
+<!-- Grid de tareas estilo Airbnb -->
+<div class="todos-grid">
+    {% for todo in todos %}
+    <div class="todo-card" data-status="{% if todo.completed %}completed{% else %}pending{% endif %}">
+        <!-- Header de la card -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div style="flex: 1;">
+                <h3 style="margin-bottom: 8px; color: var(--text-primary); {% if todo.completed %}text-decoration: line-through; opacity: 0.7;{% endif %}">
+                    {{ todo.title }}
+                </h3>
+                
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <span class="todo-status {% if todo.completed %}status-completed{% else %}status-pending{% endif %}">
+                        {% if todo.completed %}
+                            <i class="fas fa-check"></i> Completada
+                        {% else %}
+                            <i class="fas fa-clock"></i> Pendiente
+                        {% endif %}
+                    </span>
+                    
+                    <span class="priority-badge priority-{{ todo.priority|default:'medium' }}">
+                        {% if todo.priority == 'high' %}
+                            <i class="fas fa-exclamation-triangle"></i> Alta
+                        {% elif todo.priority == 'low' %}
+                            <i class="fas fa-arrow-down"></i> Baja
+                        {% else %}
+                            <i class="fas fa-minus"></i> Media
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Checkbox -->
+            <label class="custom-checkbox">
+                <input type="checkbox" {% if todo.completed %}checked{% endif %} 
+                       onchange="toggleTodo({{ todo.id }})">
+                <span class="checkmark"></span>
+            </label>
+        </div>
+        
+        <!-- Descripción -->
+        {% if todo.description %}
+        <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5;">
+            {{ todo.description }}
+        </p>
+        {% endif %}
+        
+        <!-- Fecha -->
+        <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 16px;">
+            <i class="fas fa-calendar"></i>
+            Creada el {{ todo.created_at|date:"d M Y" }}
+        </p>
+        
+        <!-- Acciones -->
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <a href="{% url 'todo:edit' todo.id %}" class="btn btn-outline" style="padding: 8px 16px;">
+                <i class="fas fa-edit"></i>
+            </a>
+            <button onclick="deleteTodo({{ todo.id }})" class="btn btn-danger" style="padding: 8px 16px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <!-- Estado vacío -->
+    <div style="grid-column: 1 / -1; text-align: center; padding: 64px 24px;">
+        <div style="color: var(--text-secondary);">
+            <i class="fas fa-tasks" style="font-size: 64px; margin-bottom: 16px; opacity: 0.3;"></i>
+            <h3 style="margin-bottom: 8px;">No tienes tareas aún</h3>
+            <p>¡Crea tu primera tarea para comenzar!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// JavaScript para funcionalidad
+function toggleTodo(todoId) {
+    fetch(`/todo/${todoId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function deleteTodo(todoId) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+        fetch(`/todo/${todoId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    }
+}
+
+// Filtros
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Remover clase active de todos los botones
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        // Agregar clase active al botón clickeado
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        const cards = document.querySelectorAll('.todo-card');
+        
+        cards.forEach(card => {
+            if (filter === 'all' || card.dataset.status === filter) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

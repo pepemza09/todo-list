@@ -1,8 +1,13 @@
+# En todo/urls.py
 from django.urls import path
 from . import views
 
+app_name = 'todo'
+
 urlpatterns = [
-    # path('', views.home, name='home'),
-    # path('add/', views.add_todo, name='add_todo'),
-    # path('delete/<int:id>/', views.delete_todo, name='delete_todo'),
+    path('', views.todo_list, name='list'),
+    path('create/', views.todo_create, name='create'),
+    path('<int:todo_id>/edit/', views.todo_edit, name='edit'),
+    path('<int:todo_id>/toggle/', views.todo_toggle, name='toggle'),
+    path('<int:todo_id>/delete/', views.todo_delete, name='delete'),
 ]
