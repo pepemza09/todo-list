@@ -2,7 +2,7 @@
 # Define la imagen para el contenedor de la aplicación Django.
 
 # Usar una imagen base de Python
-FROM python:3.9-slim-buster
+FROM python:3.9-slim-bullseye
 
 # Establecer variables de entorno
 ENV PYTHONDONTWRITEBYTECODE 1
